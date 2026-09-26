@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
-	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/inpututil"
 )
 
 const (
@@ -21,6 +21,13 @@ type Game struct {
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update(screen *ebiten.Image) error {
 	// Write your game's logical update.
+	// segurando o botão, cria um retângulo a cada spawnInterval frames
+	const spawnInterval = 2
+	if d := inpututil.MouseButtonPressDuration(ebiten.MouseButtonLeft); d > 0 && (d-1)%spawnInterval == 0 {
+		x, y := ebiten.CursorPosition()
+		g.CreateEntity(float64(x), float64(y))
+	}
+
 	g.world.Update(1.0 / 60)
 	return nil
 }
@@ -41,20 +48,15 @@ func (g *Game) Game() {
 
 }
 
-func (g *Game) CreateEntities() {
-	for range 10 {
-		x := rand.Float64()*40 + 10
-		y := rand.Float64()*40 + 10
-		entity := NewRect(x, y, 10, 10, 10)
-		g.world.entities = append(g.world.entities, *entity)
-	}
+func (g *Game) CreateEntity(x, y float64) {
+	entity := NewRect(x, y, 3, 3, 10)
+	g.world.entities = append(g.world.entities, *entity)
 }
 
 func main() {
 	game := &Game{
 		world: &World{},
 	}
-	game.CreateEntities()
 	// Specify the window size as you like. Here, a doubled size is specified.
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Your game's title")
